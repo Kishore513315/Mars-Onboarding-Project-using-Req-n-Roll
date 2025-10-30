@@ -1,0 +1,71 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+TestResults/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+*.user
+*.suo
+*.vspscc
+*.vssscc
+
+# Visual Studio folders
+.vs/
+.vscode/
+
+# ReSharper and Rider
+_ReSharper*/
+*.DotSettings.user
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+
+# Backup and temporary files
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Publish and deploy
+publish/
+dist/
+out/
+build/
+artifacts/
+
+# Configuration files that should stay local
+appsettings.Development.json
+appsettings.Local.json
+
+# Coverage and testing
+*.coverage
+*.coveragexml
+coverage.*
+*.testsettings
+*.trx
+*.nunit.xml
+
+# Logs and debug dumps
+*.log
+*.tlog
+*.dmp
+
+# IDE-specific
+.idea/
+*.sln.iml
+
+# Ignore zipped artifacts or temp exports
+*.zip
+*.rar
+*.7z
