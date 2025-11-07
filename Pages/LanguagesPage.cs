@@ -8,31 +8,37 @@ using System.Threading;
 
 namespace MarsProject.Pages
 {
-    public class SkillsPage
+    public class LanguagesPage
     {
         private readonly IWebDriver driver;
         private readonly WebDriverWait wait;
 
-        public SkillsPage(IWebDriver driver)
+        public LanguagesPage(IWebDriver driver)
         {
             this.driver = driver;
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
         }
 
-        private readonly By skillTab = By.CssSelector("a[data-tab='second']");
-        private readonly By addNewButton = By.XPath("//div[@class='ui teal button']");
-        private readonly By skillInput = By.CssSelector("input[placeholder='Add Skill']");
-        private readonly By skillLevelDropdown = By.CssSelector("select[name='level']");
+        // Locators
+        private readonly By languagesTab = By.CssSelector("a[data-tab='first']");
+        private readonly By addNewButton = By.XPath("//html/body/div[1]/div/section[2]/div/div/div/div[3]/form/div[2]/div/div[2]/div/table/thead/tr/th[3]/div");
+        private readonly By languageInput = By.CssSelector("input[placeholder='Add Language']");
+        private readonly By levelDropdown = By.CssSelector("select[name='level']");
         private readonly By addButton = By.CssSelector("input[value='Add']");
         private readonly By updateButton = By.CssSelector("input[value='Update']");
         private readonly By popupMessage = By.CssSelector("div.ns-box-inner, div[role='alert']");
         private readonly By validationMessage = By.XPath("//div[contains(@class, 'ui negative message') or contains(@class, 'validation')]");
-        private readonly By skillTableRows = By.XPath("//table/tbody/tr");
+        private readonly By tableRows = By.XPath("//table/tbody/tr");
 
-        public void GoToSkillsTab()
+        // Dynamic Locators
+        private By EditIcon(string language) => By.XPath($"//td[text()='{language}']/following-sibling::td//i[contains(@class,'write')]");
+        private By DeleteIcon(string language) => By.XPath($"//td[text()='{language}']/following-sibling::td//i[contains(@class,'remove')]");
+
+        // Actions
+        public void GoToLanguagesTab()
         {
-            IWebElement skillsTab = wait.Until(ExpectedConditions.ElementToBeClickable(skillTab));
-            skillsTab.Click();
+            var tab = wait.Until(ExpectedConditions.ElementToBeClickable(languagesTab));
+            tab.Click();
         }
 
         public void ClickAddNewButton()
@@ -41,6 +47,7 @@ namespace MarsProject.Pages
             {
                 var addNewBtn = wait.Until(ExpectedConditions.ElementIsVisible(addNewButton));
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", addNewBtn);
+
                 try
                 {
                     addNewBtn.Click();
@@ -52,57 +59,59 @@ namespace MarsProject.Pages
             }
             catch (WebDriverTimeoutException)
             {
-                throw new Exception("Add New Skill button was not found or not clickable after waiting.");
+                throw new Exception("Add New Language button was not found or clickable.");
             }
         }
 
-        public void AddSkill(string skillName, string level)
+        public void EnterLanguageDetails(string language, string level)
         {
-            var skillField = wait.Until(ExpectedConditions.ElementIsVisible(skillInput));
-            skillField.Clear();
+            var input = wait.Until(ExpectedConditions.ElementIsVisible(languageInput));
+            input.Clear();
 
-            if (!string.IsNullOrWhiteSpace(skillName))
-            {
-                skillField.SendKeys(skillName);
-            }
+            if (!string.IsNullOrWhiteSpace(language))
+                input.SendKeys(language);
 
             if (!string.IsNullOrWhiteSpace(level))
             {
-                var dropdown = new SelectElement(wait.Until(ExpectedConditions.ElementIsVisible(skillLevelDropdown)));
+                var dropdown = new SelectElement(wait.Until(ExpectedConditions.ElementIsVisible(levelDropdown)));
                 dropdown.SelectByText(level);
             }
+        }
 
+        public void ClickAddButton()
+        {
             wait.Until(ExpectedConditions.ElementToBeClickable(addButton)).Click();
         }
 
-        public void EditSkill(string oldSkill, string newSkill)
+        public void ClickUpdateButton()
         {
-            wait.Until(ExpectedConditions.ElementToBeClickable(
-                By.XPath($"//td[text()='{oldSkill}']/following-sibling::td//i[contains(@class,'write icon')]")
-            )).Click();
-
-            var skillField = wait.Until(ExpectedConditions.ElementIsVisible(skillInput));
-            skillField.Clear();
-            skillField.SendKeys(newSkill);
-
             wait.Until(ExpectedConditions.ElementToBeClickable(updateButton)).Click();
         }
 
-        public void DeleteSkill(string skillName)
+        public void EditLanguage(string oldLang, string newLang)
         {
-            wait.Until(ExpectedConditions.ElementToBeClickable(
-                By.XPath($"//td[text()='{skillName}']/following-sibling::td//i[contains(@class,'remove icon')]")
-            )).Click();
+            GoToLanguagesTab();
+            wait.Until(ExpectedConditions.ElementToBeClickable(EditIcon(oldLang))).Click();
+
+            var input = wait.Until(ExpectedConditions.ElementIsVisible(languageInput));
+            input.Clear();
+            input.SendKeys(newLang);
+
+            ClickUpdateButton();
         }
 
-        //  CleanUp after all tests
-        public void DeleteAllSkills()
+        public void DeleteLanguage(string language)
         {
-            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-            wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//table/tbody/tr")));
+            GoToLanguagesTab();
+            wait.Until(ExpectedConditions.ElementToBeClickable(DeleteIcon(language))).Click();
+        }
 
-            var rows = driver.FindElements(By.XPath("//table/tbody/tr"));
-            Console.WriteLine($"Found {rows.Count} skill(s) to delete.");
+        // Cleanup - delete all rows
+        public void DeleteAllLanguages()
+        {
+            wait.Until(ExpectedConditions.ElementIsVisible(tableRows));
+            var rows = driver.FindElements(tableRows);
+            Console.WriteLine($"Found {rows.Count} languages to delete.");
 
             while (rows.Count > 0)
             {
@@ -121,20 +130,17 @@ namespace MarsProject.Pages
                         ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", deleteButton);
                     }
 
-                    Thread.Sleep(800); // short wait for table refresh
-                    rows = driver.FindElements(By.XPath("//table/tbody/tr"));
+                    Thread.Sleep(800);
+                    rows = driver.FindElements(tableRows);
                 }
                 catch (StaleElementReferenceException)
                 {
-                    Console.WriteLine("Table refreshed — re-fetching rows...");
-                    rows = driver.FindElements(By.XPath("//table/tbody/tr"));
+                    rows = driver.FindElements(tableRows);
                 }
             }
 
-            Console.WriteLine("All skills deleted successfully.");
+            Console.WriteLine("All languages deleted successfully.");
         }
-
-
 
         public string GetPopupMessage()
         {
@@ -142,7 +148,7 @@ namespace MarsProject.Pages
             {
                 Thread.Sleep(500);
 
-                // Check if validation message exists
+                // Check for inline validation message first (e.g., duplicate entry)
                 var validation = driver.FindElements(validationMessage);
                 if (validation.Count > 0)
                 {
@@ -151,11 +157,16 @@ namespace MarsProject.Pages
                     return valText;
                 }
 
-                // Otherwise, get standard popup message
-                var popup = wait.Until(ExpectedConditions.ElementIsVisible(popupMessage));
-                string message = popup.Text.Trim();
-                Console.WriteLine("Popup Message: " + message);
-                return message;
+                // Check for popup (e.g., "English has been added" or "already exists")
+                var popup = driver.FindElements(popupMessage);
+                if (popup.Count > 0)
+                {
+                    string popupText = popup.First().Text.Trim();
+                    Console.WriteLine("Popup Message: " + popupText);
+                    return popupText;
+                }
+
+                return "No message displayed";
             }
             catch (Exception ex)
             {
@@ -163,7 +174,9 @@ namespace MarsProject.Pages
                 return "No message displayed";
             }
         }
+
     }
 }
+
 
 

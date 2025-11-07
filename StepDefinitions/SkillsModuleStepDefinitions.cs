@@ -5,7 +5,6 @@ using NUnit.Framework;
 using OpenQA.Selenium;
 using Reqnroll;
 using System;
-using System;
 
 namespace MarsProject.StepDefinitions
 {
@@ -23,14 +22,16 @@ namespace MarsProject.StepDefinitions
             _skillsPage = new SkillsPage(_driver);
         }
 
-        [Given(@"I am logged into the Mars portal")]
+
+        [Given(@"I am logged into the Mars portal skills")]
         public void GivenIAmLoggedIntoTheMarsPortal()
         {
             _signInPage.GoToLoginPage();
             _signInPage.EnterCredentials("chigurupati28555@gmail.com", "Poker@007");
             _signInPage.ClickLogin();
 
-            Assert.That(_signInPage.IsDashboardVisible(), Is.True, "Login failed — dashboard not visible.");
+            Assert.That(_signInPage.IsDashboardVisible(), Is.True,
+                "❌ Login failed — dashboard not visible.");
         }
 
         [Given(@"I navigate to the Skills tab")]
@@ -38,6 +39,7 @@ namespace MarsProject.StepDefinitions
         {
             _skillsPage.GoToSkillsTab();
         }
+
 
         [When(@"I click on ""(.*)"" button")]
         public void WhenIClickOnButton(string buttonName)
@@ -50,17 +52,16 @@ namespace MarsProject.StepDefinitions
                     break;
 
                 case "add":
-                    // Add handled via AddSkill method after entering details
                     break;
 
                 case "update":
-                    // Update handled via EditSkill method
                     break;
 
                 default:
-                    throw new ArgumentException($"Unknown button name: {buttonName}");
+                    throw new ArgumentException($"❌ Unknown button name: {buttonName}");
             }
         }
+
 
         [When(@"I enter skill name ""(.*)"" with level ""(.*)""")]
         public void WhenIEnterSkillNameWithLevel(string skillName, string level)
@@ -80,6 +81,7 @@ namespace MarsProject.StepDefinitions
             _skillsPage.DeleteSkill(skillName);
         }
 
+
         [Then(@"I should see a message ""(.*)""")]
         public void ThenIShouldSeeAMessage(string expectedMessage)
         {
@@ -87,6 +89,33 @@ namespace MarsProject.StepDefinitions
             Assert.That(actualMessage, Does.Contain(expectedMessage),
                 $"❌ Expected: '{expectedMessage}', but got: '{actualMessage}'");
         }
+
+        [Then(@"I should see a validation message ""(.*)""")]
+        public void ThenIShouldSeeAValidationMessage(string expectedValidation)
+        {
+            string actualMessage = _skillsPage.GetPopupMessage();
+            Assert.That(actualMessage, Does.Contain(expectedValidation),
+                $"❌ Expected Validation: '{expectedValidation}', but got: '{actualMessage}'");
+        }
+
+
+        [When(@"I delete all skills from the Skills tab")]
+        public void WhenIDeleteAllSkillsFromTheSkillsTab()
+        {
+            _skillsPage.DeleteAllSkills();
+        }
+
+        [Then(@"all skills should be removed successfully")]
+        public void ThenAllSkillsShouldBeRemovedSuccessfully()
+        {
+            Console.WriteLine("Cleanup completed — all skills deleted successfully.");
+        }
     }
 }
+
+
+
+
+
+
 
