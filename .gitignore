@@ -69,3 +69,5 @@ coverage.*
 *.zip
 *.rar
 *.7z
+
+*.feature.cs
